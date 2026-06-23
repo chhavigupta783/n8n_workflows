@@ -1,0 +1,242 @@
+{
+  "name": "Customer Support Email Agent",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "filters": {}
+      },
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        0,
+        0
+      ],
+      "id": "d914c0f9-b1d5-4bfc-8bb3-1d51f9c1e368",
+      "name": "Gmail Trigger",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "JkXNRjpJML2bwiBu",
+          "name": "Gmail account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "b97916a3-e62d-4379-8b9f-ca98a3bf2ff4",
+              "name": "emailBody",
+              "value": "={{ $json.snippet }}",
+              "type": "string"
+            },
+            {
+              "id": "ce22a479-0d9a-497a-9397-32c0a2056909",
+              "name": "threadID",
+              "value": "={{ $json.threadId }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        208,
+        0
+      ],
+      "id": "b2e4959b-d7c4-4ebc-8d07-6c9b5669fa0c",
+      "name": "Set Content"
+    },
+    {
+      "parameters": {
+        "model": "llama-3.3-70b-versatile",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        272,
+        208
+      ],
+      "id": "b9472911-dd49-4431-80c6-724d6028a85c",
+      "name": "Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "BPMji4yEYXB8XOsy",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"category\": \"sales\",\n  \"summary\": \"The sender is interested in AI automation services.\",\n  \"draftReply\": \"Dear Sir/Madam, thank you for your inquiry...\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        592,
+        208
+      ],
+      "id": "2489cdfa-b6d5-4ae0-9f8c-f1bdfcf2af4d",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "operation": "reply",
+        "messageId": "={{ $('Gmail Trigger').item.json.id }}",
+        "emailType": "text",
+        "message": "={{ $json.output.draftReply }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        768,
+        0
+      ],
+      "id": "75354189-a274-4847-845c-246418ccc60a",
+      "name": "Reply to a message",
+      "webhookId": "99f9c13c-b827-4a3a-987e-e7c4200b667a",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "SUzfLNrboKQQHBZO",
+          "name": "Gmail account 4"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "rambansal614@gmail.com",
+        "subject": "AI Reply Sent SUCCESSFULLY !",
+        "emailType": "text",
+        "message": "=A new email was processed.  Category:{{ $('AI Agent').item.json.output.category }}  Summary {{ $('AI Agent').item.json.output.summary }}:  An AI-generated reply has been sent successfully.",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1008,
+        16
+      ],
+      "id": "9b612417-cb8d-4008-8f01-884bda66824c",
+      "name": "Send a message",
+      "webhookId": "01fd9700-8724-45be-a1d2-94f7c6222a13",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "iGlboNHB2lmuNVPj",
+          "name": "Gmail account 5"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=email subject :\n{{ $('Gmail Trigger').item.json.Subject }}\n\nemail content:\n{{ $json.emailBody }}\n\n",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=You are an AI Email Assistant.\n\nAnalyze the email below and identify:\n\n1. What is the email about?\n2. What is the sender asking for?\n3. Write a professional email reply.\n\nEmail Subject:\n{{ $('Gmail Trigger').item.json.Subject }}\n\nEmail Content:\n{{ $json.emailBody }}\n\nReturn ONLY valid JSON in this format:\n\n{\n  \"category\": \"support/sales/general/meeting/billing\",\n  \"summary\": \"short summary\",\n  \"draftReply\": \"professional email response\"\n}\n\nReturn only valid JSON matching the specified format.\nDo not include placeholders such as [Your Name], [Company Name], or [Email].\n\nDo not include any signature, sender name, or sign-off at the end of the email."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        416,
+        0
+      ],
+      "id": "cd100ce2-e4be-41d4-8172-f24945cc4f88",
+      "name": "AI Agent"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Gmail Trigger": {
+      "main": [
+        [
+          {
+            "node": "Set Content",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Content": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reply to a message": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Reply to a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "ee079735-a810-4c75-8c76-d177ae013d85",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "fd2f0fa55b8fb719a35201cf89b845ab58c9c74839e3b6a30f17634cf21f51ce"
+  },
+  "nodeGroups": [],
+  "id": "AGRYyM6iLtQPipmZ",
+  "tags": []
+}
