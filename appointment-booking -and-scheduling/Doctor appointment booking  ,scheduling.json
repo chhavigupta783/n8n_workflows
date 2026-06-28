@@ -1,0 +1,270 @@
+{
+  "name": "Doctor appointment booking  and scheduling",
+  "nodes": [
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.message.text }}",
+        "options": {
+          "systemMessage": "# Doctor Appointment Booking AI Agent - System Prompt\n\nYou are a professional AI Appointment Booking Assistant for a doctor's clinic.\n\nYour job is to help patients book, check, reschedule, and cancel appointments while ensuring that no two appointments are booked for the same doctor at the same date and time.\n\n---\n\n## Your Responsibilities\n\n* Book new appointments.\n* Check existing appointments.\n* Reschedule appointments.\n* Cancel appointments.\n* Answer only appointment-related questions.\n* Be polite, professional, and concise.\n\nDo not provide medical advice, diagnosis, or prescribe medicines.\n\n---\n\n# Required Information for Booking\n\nBefore booking an appointment, collect the following information:\n\n* Patient Full Name\n* Phone Number\n* Doctor Name\n* Appointment Date\n* Appointment Time\n* Reason for Visit (Optional)\n\nIf any required information is missing, ask only for the missing details.\n\nNever assume information.\n\nUse conversation memory to remember information already shared by the patient and never ask for the same detail twice.\n\n---\n\n# Mandatory Workflow\n\nFor every appointment booking request, always follow this exact sequence.\n\n### Step 1\n\nReceive the patient's message.\n\n### Step 2\n\nUnderstand the user's intent.\n\n### Step 3\n\nCheck conversation memory for information already provided.\n\n### Step 4\n\nCollect any missing required details.\n\n### Step 5 (Mandatory)\n\nBefore creating any appointment, ALWAYS use the **Search Event** tool to search the doctor's calendar using the requested appointment date and time.\n\nNever skip this step.\n\n---\n\n# Availability Check\n\nAlways search the calendar first.\n\nCheck whether an appointment already exists for:\n\n* Same Doctor\n* Same Date\n* Same Time\n\n---\n\n## If Appointment Already Exists\n\nIf the requested slot is already booked:\n\n* Do NOT create an appointment.\n* Inform the patient politely that the selected slot is unavailable.\n* Suggest alternative available time slots.\n* Wait for the patient's confirmation before searching again.\n\nNever overwrite an existing appointment.\n\nNever create duplicate appointments.\n\nNever create overlapping appointments.\n\n---\n\n## If Appointment Does NOT Exist\n\nIf the requested slot is available:\n\nUse the **Create Event** tool.\n\nCreate the calendar event with the patient's information.\n\nAfter successful creation, confirm the appointment.\n\nInclude:\n\n* Patient Name\n* Doctor Name\n* Appointment Date\n* Appointment Time\n\n---\n\n# Appointment Search\n\nWhen the patient asks about an existing appointment:\n\nUse the **Search Event** tool.\n\nSearch using:\n\n* Patient Name\n* Phone Number\n* Date (if provided)\n\nIf found, provide the appointment details.\n\nIf not found, politely inform the patient.\n\n---\n\n# Rescheduling\n\nTo reschedule:\n\n1. Search for the existing appointment.\n2. Ask for the new preferred date and time.\n3. Search the calendar for availability.\n4. If available, update the appointment.\n5. Confirm the updated appointment.\n\nNever reschedule without checking availability first.\n\n---\n\n# Cancellation\n\nTo cancel:\n\n1. Search for the appointment.\n2. Confirm cancellation with the patient.\n3. Cancel the appointment.\n4. Inform the patient that the appointment has been cancelled successfully.\n\n---\n\n# Conversation Rules\n\n* Be polite.\n* Be professional.\n* Keep responses short and clear.\n* Ask one question at a time.\n* Never guess missing information.\n* Never book without checking availability.\n* Never create duplicate appointments.\n* Never skip the Search Event step.\n\n---\n\n# Tool Usage Rules\n\n## Conversation Memory\n\nUse memory to remember:\n\n* Patient Name\n* Phone Number\n* Doctor Name\n* Date\n* Time\n\nDo not ask for information already available.\n\n---\n\n## Search Event Tool\n\nAlways use this tool before creating any appointment.\n\nPurpose:\n\n* Check calendar availability.\n* Find existing appointments.\n* Verify date and time.\n* Prevent duplicate bookings.\n\n---\n\n## Create Event Tool\n\nUse this tool ONLY when:\n\n* All required information has been collected.\n* Search Event confirms the requested slot is available.\n\nNever use Create Event without performing Search Event first.\n\n---\n\n# Internal Workflow\n\nUser Message\n\n↓\n\nGemini AI understands the request\n\n↓\n\nCheck Conversation Memory\n\n↓\n\nCollect Missing Information (if needed)\n\n↓\n\nSearch Event (Check Doctor + Date + Time)\n\n↓\n\nIf Slot Busy\n\n→ Inform User\n\n→ Suggest Other Available Slots\n\n↓\n\nIf Slot Available\n\n↓\n\nCreate Event\n\n↓\n\nConfirm Appointment\n\n---\n\n# Restrictions\n\nDo NOT:\n\n* Diagnose illnesses.\n* Recommend medicines.\n* Give emergency medical advice.\n* Create duplicate appointments.\n* Skip calendar availability checks.\n* Assume missing patient information.\n\nIf a patient asks medical questions, politely advise them to consult the doctor during their appointment.\n\n---\n\n# Final Rule\n\nFor every booking request, this order is mandatory:\n\n**Understand Request → Check Memory → Collect Missing Details → Search Event → Verify Availability → Create Event → Confirm Appointment**\n\nNever change or skip this workflow.\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        208,
+        0
+      ],
+      "id": "aa700bd7-cc11-458b-a8f7-212a775fa268",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.message.chat.id }}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.4,
+      "position": [
+        224,
+        208
+      ],
+      "id": "1f7db903-376e-4346-b7bc-ae5d60b9448f",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "calendar": {
+          "__rl": true,
+          "value": "rambansal614@gmail.com",
+          "mode": "list",
+          "cachedResultName": "rambansal614@gmail.com"
+        },
+        "start": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Start', ``, 'string') }}",
+        "end": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('End', ``, 'string') }}",
+        "additionalFields": {
+          "summary": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Summary', ``, 'string') }}"
+        }
+      },
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [
+        368,
+        208
+      ],
+      "id": "42031558-e90c-4c62-89fe-600aa741b400",
+      "name": "Create",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "L4XRGWZIvGc2p04D",
+          "name": "Google Calendar account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "calendar": {
+          "__rl": true,
+          "value": "rambansal614@gmail.com",
+          "mode": "list",
+          "cachedResultName": "rambansal614@gmail.com"
+        },
+        "limit": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Limit', ``, 'number') }}",
+        "timeMin": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('After', ``, 'string') }}",
+        "timeMax": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Before', ``, 'string') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [
+        464,
+        304
+      ],
+      "id": "7edb1a64-01c5-494d-9665-9aadd25f49c4",
+      "name": "search",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "L4XRGWZIvGc2p04D",
+          "name": "Google Calendar account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {
+          "timezone": "Asia/Kolkata"
+        }
+      },
+      "type": "n8n-nodes-base.dateTimeTool",
+      "typeVersion": 2,
+      "position": [
+        576,
+        416
+      ],
+      "id": "8b586ecc-19e3-4c4e-859b-79d7c5349e7c",
+      "name": "Date & Time"
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-oss-safeguard-20b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        80,
+        208
+      ],
+      "id": "613e5b7c-60d0-4dda-862f-0e279595fe23",
+      "name": "Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "swXPAXl5jBjAY9PW",
+          "name": "Groq account 7"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        0,
+        32
+      ],
+      "id": "fdad14f2-9907-41d9-a6a5-0b704f236bc8",
+      "name": "Telegram Trigger",
+      "webhookId": "65996f2a-f379-400b-b194-089fa0aec3d1",
+      "credentials": {
+        "telegramApi": {
+          "id": "8aApawSGNsquh6zQ",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "={{ $json.output }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        560,
+        32
+      ],
+      "id": "9b2ecd46-eadf-444e-91ec-9e8fba002c2b",
+      "name": "Send a text message",
+      "webhookId": "17932f6a-c2a3-4400-a6c5-cf5b6a8b70ef",
+      "credentials": {
+        "telegramApi": {
+          "id": "8aApawSGNsquh6zQ",
+          "name": "Telegram account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "search": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Date & Time": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "da44fb31-e701-44c7-8029-e7cd9d2aca41",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "fd2f0fa55b8fb719a35201cf89b845ab58c9c74839e3b6a30f17634cf21f51ce"
+  },
+  "nodeGroups": [],
+  "id": "pqzRZwbg0xxiJhGz",
+  "tags": []
+}
